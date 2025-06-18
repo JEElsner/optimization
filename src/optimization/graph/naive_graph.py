@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Collection, Set, List, Dict, Iterable, Any, Generic, TypeVar, Tuple, Hashable
+from typing import Collection, Set, List, Dict, TypeVar, Tuple, Hashable, Self
 
 import numpy as np
 
@@ -74,34 +74,6 @@ class NaiveGraph(Graph[V]):
                     
         return NaiveGraph(vertices, edges)
     
-    @classmethod
-    def from_edges(cls, edges: Collection[Tuple[V, V]]) -> NaiveGraph[V]:
-        vertices = set()
-        
-        for v1, v2 in edges:
-            vertices.update({v1, v2})
-            
-        return NaiveGraph(vertices, edges)
-    
-    @classmethod
-    def from_str(cls, s: str) -> NaiveGraph[V]:
-        """Read graphs stored in a simple format string.
-        
-        Note, this method WILL NOT COMPLAIN OR ERROR if any edge has more than two characters.
-        
-        Args:
-            s:  A string of edges comprising two non-space characters (typically letters or numbers), each edge separated by whitespace.
-            
-        Returns:
-            A graph from the parsed string
-        """
-        
-        if len(s.strip()) == 0:
-            return NaiveGraph(set(), set())
-        
-        edges = [(e[0], e[1]) for e in s.strip().split()]
-        return cls.from_edges(edges) # type: ignore
-
     def to_char_string(self) -> str:
         """Return a compact string representing the edges of graphs with
         single-character vertices that can be read by `from_str`.
@@ -125,3 +97,39 @@ class NaiveGraph(Graph[V]):
         
         # TODO: this does not account for edges being out of order
         return self.__dict__ == value.__dict__
+
+    @classmethod
+    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Tuple[V, V]]) -> NaiveGraph[V]:
+        return NaiveGraph(vertices, edges)
+
+    @classmethod
+    def _empty_graph(cls) -> NaiveGraph[V]:
+        return NaiveGraph(set(), set())
+
+    def is_adjacent(self, v1: V, v2: V) -> bool:
+        return (v1, v2) in self.edges or (v2, v1) in self.edges
+
+    def add_vertex(self, v: V):
+        self.vertices.add(v)
+
+    def remove_vertex(self, v: V):
+        self.vertices.remove(v)
+
+    def add_edge(self, edge: Tuple[V, V]):
+        if self.is_adjacent(*edge):
+            return
+        else:
+            self.edges.append(edge)
+
+    def remove_edge(self, edge: Tuple[V, V]):
+        try:
+            self.edges.remove(edge)
+        except ValueError:
+            pass
+
+        try:
+            self.edges.remove((edge[1], edge[0]))
+        except ValueError:
+            pass
+
+
