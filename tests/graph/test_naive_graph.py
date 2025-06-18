@@ -1,25 +1,25 @@
 import pytest
 
-from optimization.graph import Graph
+from optimization.graph import NaiveGraph
 
 @pytest.fixture
 def square_graph():
-    return Graph.from_str("ab bc cd da")
+    return NaiveGraph.from_str("ab bc cd da")
 
 @pytest.fixture
 def empty_graph():
-    return Graph(set(), set())
+    return NaiveGraph(set(), set())
 
 @pytest.fixture
 def singleton():
-    return Graph(set("a"), set())
+    return NaiveGraph(set("a"), set())
 
 def test_from_str(empty_graph):
-    g = Graph.from_str("ab bc cd da")
+    g = NaiveGraph.from_str("ab bc cd da")
     assert g.vertices == {"a", "b", "c", "d"}
     assert g.edges == [("a", "b"), ("b", "c"), ("c", "d"), ("d", "a")]
 
-    assert Graph.from_str("") == empty_graph
+    assert NaiveGraph.from_str("") == empty_graph
 
 @pytest.mark.xfail(reason="deal with singleton case")
 def test_to_str(square_graph, empty_graph, singleton):
