@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TypeVar, Generic, Collection, Tuple, Set
 
+import re
+
 from abc import ABCMeta, abstractmethod
 
 V = TypeVar('V')
@@ -86,20 +88,45 @@ class Graph(Generic[V], metaclass=ABCMeta):
     def from_str(cls, s: str) -> Graph[V]:
         """Read graphs stored in a simple format string.
         
-        Note, this method WILL NOT COMPLAIN OR ERROR if any edge has more than two characters.
+        A string representation of a graph consists of edges and vertices
+        separated by whitespace. An edge is represented by two vertices
+        separated by either a '-' or a '>' with no whitespace. A '>' indicates
+        the directionality of the edge.
+
+        >>> from optimization.graph import NaiveGraph
+        >>> NaiveGraph.from_str("a b c d") # A graph with no edges
+        >>> NaiveGraph.from_str("a>b b>c c>d d>a") # A directed square graph
+        >>> NaiveGraph.from_str("a b b-c c>d")
         
         Args:
-            s:  A string of edges comprising two non-space characters (typically letters or numbers), each edge separated by whitespace.
+            s: A string representation of a graph, described above. 
             
         Returns:
             A graph from the parsed string
         """
+        s = s.strip()
         
-        if len(s.strip()) == 0:
-            return cls._empty_graph()
-        
-        edges = [(e[0], e[1]) for e in s.strip().split()]
-        return cls.from_edges(edges) # type: ignore
+        vertices = set()
+        edges = set()
+
+        for edge_str in s.split():
+            splits = re.split("([->])", edge_str)
+
+            if len(splits) == 1:
+                vertices.add(splits[0])
+            elif len(splits) == 3:
+                vertices.update(splits[::2])
+
+                # TODO deal with digraphs
+                if splits[1] == ">":
+                    raise NotImplementedError
+
+                edges.add(tuple(splits[::2]))
+            else:
+                raise ValueError(f"Malformed edge notation: {edge_str}")
+            
+        return cls.from_vertices_and_edges(vertices, edges)
+            
     
     @classmethod
     @abstractmethod
