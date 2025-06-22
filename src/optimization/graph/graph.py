@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TypeVar, Generic, Collection, Tuple, Set
+from typing import TypeVar, Generic, Collection, Tuple, Set, Iterable
 
 import re
 
@@ -15,6 +15,18 @@ class Graph(Generic[V], metaclass=ABCMeta):
         
         If the graph is directed, this is true only if v2 is accessible from v1.
         """
+        pass
+    
+    @property
+    @abstractmethod
+    def vertices(self) -> Iterable[V]:
+        """Get the vertices in the graph"""
+        pass
+
+    @property
+    @abstractmethod
+    def edges(self) -> Iterable[Tuple[V, V]]:
+        """Get the edges in the graph"""
         pass
 
     @abstractmethod
@@ -135,6 +147,5 @@ class Graph(Generic[V], metaclass=ABCMeta):
         # Necessary for constructors to return empty graphs of different representations
         pass
 
-    @abstractmethod
     def to_char_string(self) -> str:
-        pass
+        return " ".join(map(str, self.vertices)) + " " + " ".join(map(lambda e: f"{e[0]}-{e[1]}", self.edges))

@@ -7,8 +7,23 @@ from .graph import Graph, V
 class IncidenceMatrix(Graph[V]):
     def __init__(self, vertices: List[V], matrix: np.typing.ArrayLike):
         # TODO: maybe make vertices a one-to-one mapping in the future, so that there's no possibility of duplicate vertices
-        self.vertices = vertices
+        self._vertices = vertices
         self.matrix = np.array(matrix)
+        
+    @property
+    def vertices(self) -> List[V]:
+        return self._vertices
+    
+    @property
+    def edges(self) -> Set[Tuple[V, V]]:
+        edges: Set[Tuple[V, V]] = set()
+
+        for j, col in enumerate(self.matrix.T):
+            indices = np.where(col)
+            edge = (self.vertices[indices[0]], self.vertices[indices[1]])
+            edges.add(edge)
+
+        return edges
 
     def is_adjacent(self, v1: V, v2: V) -> bool:
         return np.any(self.matrix[v1] & self.matrix[v2]) # type: ignore
@@ -69,9 +84,6 @@ class IncidenceMatrix(Graph[V]):
     @classmethod
     def _empty_graph(cls) -> Graph[V]:
         return IncidenceMatrix(list(), np.zeros(shape=(0, 0)))
-
-    def to_char_string(self) -> str:
-        raise NotImplementedError
 
 class IntIncidenceMatrix(IncidenceMatrix[int]):
     def __init__(self, matrix: np.typing.ArrayLike):

@@ -1,4 +1,4 @@
-from typing import Collection, Set, Tuple, Dict
+from typing import Collection, Iterable, Set, Tuple, Dict
 from .graph import Graph, V
 
 class AdjacencySet(Graph[V]):
@@ -10,6 +10,20 @@ class AdjacencySet(Graph[V]):
                     neighbor_dict.setdefault(v2, set()).add(v1)
 
         self.neighbor_dict = neighbor_dict
+
+    @property
+    def vertices(self) -> Iterable[V]:
+        return self.neighbor_dict.keys()
+
+    @property
+    def edges(self) -> Iterable[Tuple[V, V]]:
+        edges: Set[Tuple[V, V]] = set()
+
+        for v1, neighbors in self.neighbor_dict.items():
+            edges.update({(v1, v2) for v2 in neighbors})
+
+        return edges
+
 
     def is_adjacent(self, v1: V, v2: V) -> bool:
         if v2 not in self.neighbor_dict.keys():

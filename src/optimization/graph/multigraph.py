@@ -6,7 +6,7 @@ P = TypeVar('P')
 
 class Multigraph(Graph[V], Generic[V, P]):
     def __init__(self, vertices: Collection[V]):
-        self.vertices = set(vertices)
+        self._vertices = set(vertices)
         self.planes: Dict[P, Graph[V]] = dict()
 
     def __getitem__(self, plane: P):
