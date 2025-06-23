@@ -25,11 +25,12 @@ class IncidenceMatrix(Graph[V]):
         return edges
 
     def is_adjacent(self, v1: V, v2: V) -> bool:
-        return np.any(self.matrix[v1] & self.matrix[v2]) # type: ignore
+        return np.any(self.matrix[self.get_vertex_index(v1)] * self.matrix[self.get_vertex_index(v2)]) # type: ignore
 
     def neighbors_of(self, v: V) -> Set[V]:
         # product of incidence matrix and vertex row gives number of connections to each vertex
-        neighbors = set(self.matrix @ self.matrix[self.get_vertex_index(v)])
+        neighbors = list(np.where(self.matrix @ self.matrix[self.get_vertex_index(v)] >= 1)[0])
+        neighbors = set(map(lambda i: self.vertices[i], neighbors))
         neighbors.remove(v) # remove self from neighbor list (TODO: removes loops, which we would want to keep)
         return neighbors
 

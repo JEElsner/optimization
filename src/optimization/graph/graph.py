@@ -236,11 +236,17 @@ class Graph(Generic[V], metaclass=ABCMeta):
             elif len(splits) == 3:
                 vertices.update(splits[::2])
 
-                # TODO deal with digraphs
+                edgetype = Edge
                 if splits[1] == ">":
-                    raise NotImplementedError
+                    edgetype = DirectedEdge
+                elif splits[1] == "<":
+                    edgetype = DirectedEdge
 
-                edges.add(tuple(splits[::2]))
+                    tmp = splits[0]
+                    splits[0] = splits[2]
+                    splits[2] = tmp
+
+                edges.add(edgetype(*splits[::2])) # type: ignore
             else:
                 raise ValueError(f"Malformed edge notation: {edge_str}")
             

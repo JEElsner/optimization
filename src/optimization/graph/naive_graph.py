@@ -115,7 +115,8 @@ class NaiveGraph(Graph[V]):
         return NaiveGraph(set(), set())
 
     def is_adjacent(self, v1: V, v2: V) -> bool:
-        return (v1, v2) in self._edges or (v2, v1) in self._edges
+        # TODO deal with other types of edges
+        return Edge(v1, v2) in self._edges
 
     def add_vertex(self, v: V):
         self._vertices.add(v)

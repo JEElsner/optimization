@@ -11,12 +11,15 @@ def empty_graph(any_graph) -> Graph:
     return any_graph._empty_graph()
 
 @pytest.fixture
+def square_graph(any_graph, vertices, edges):
+    return any_graph.from_vertices_and_edges(vertices, edges)
+
+@pytest.fixture
 def vertices():
-    return {"a", "b", "c", "d"}
+    return ["a", "b", "c", "d"]
 
 @pytest.fixture
 def edges(vertices):
-    vertices = list(vertices)
     return [Edge(vertices[0], vertices[1]),
             Edge(vertices[1], vertices[2]),
             Edge(vertices[2], vertices[3]),
@@ -35,3 +38,20 @@ def test_from_vertices_and_edges(any_graph: Graph, vertices, edges):
     g = any_graph.from_vertices_and_edges(vertices, edges)
     assert set(g.vertices) == set(vertices)
     assert set(g.edges) == set(edges)
+    
+def test_from_edges(any_graph, vertices, edges):
+    g = any_graph.from_edges(edges)
+    assert set(g.vertices) == set(vertices)
+    assert set(g.edges) == set(edges)
+    
+def test_from_str(any_graph, vertices, edges):
+    g = any_graph.from_str("a-b b-c c-d d-a")
+    assert set(g.vertices) == set(vertices)
+    assert set(g.edges) == set(edges)
+
+def test_is_adjacent(square_graph: Graph):
+    assert square_graph.is_adjacent("a", "b")
+    assert not square_graph.is_adjacent("a", "c")
+    
+def test_neighbors_of(square_graph: Graph):
+    assert square_graph.neighbors_of("a") == {"b", "d"}
