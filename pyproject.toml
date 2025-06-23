@@ -17,6 +17,9 @@ license = {text = "MIT"}
 [tool.pdm]
 distribution = true
 
+[tool.coverage.run]
+omit = ["tests/*"]
+
 [dependency-groups]
 test = [
     "pytest>=8.4.0",
@@ -26,3 +29,8 @@ test = [
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[tool.pdm.scripts]
+test = "coverage run -m pytest"
+cov_html = "coverage html"
+coverage = {composite = ["test", "cov_html"]}
