@@ -16,7 +16,7 @@ class AdjacencySet(Graph[V]):
         return self.neighbor_dict.keys()
 
     @property
-    def edges(self) -> Iterable[Edge[V]]:
+    def edges(self) -> Set[Edge[V]]:
         edges: Set[Edge[V]] = set()
 
         for v1, neighbors in self.neighbor_dict.items():
@@ -26,13 +26,21 @@ class AdjacencySet(Graph[V]):
 
 
     def is_adjacent(self, v1: V, v2: V) -> bool:
+        if v1 not in self.neighbor_dict.keys():
+            raise ValueError(f'v1: {v1!r} not in vertices')
+
         if v2 not in self.neighbor_dict.keys():
             raise ValueError(f'v2: {v2!r} not in vertices')
 
         return v2 in self.neighbor_dict[v1]
 
     def neighbors_of(self, v: V) -> Set[V]:
-        return self.neighbor_dict[v]
+        res = self.neighbor_dict.get(v, None)
+        
+        if res is None:
+            raise ValueError(f"{v} not a vertex in graph")
+        
+        return res
 
     def add_vertex(self, v: V):
         self.neighbor_dict.setdefault(v, set())
@@ -66,10 +74,7 @@ class AdjacencySet(Graph[V]):
 
     @property
     def edge_count(self) -> int:
-        if self.is_digraph:
-            return sum(map(len, self.neighbor_dict.values()))
-        else:
-            raise NotImplementedError
+        return len(self.edges)
 
     @classmethod
     def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> Graph[V]:

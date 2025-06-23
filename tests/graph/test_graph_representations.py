@@ -53,5 +53,18 @@ def test_is_adjacent(square_graph: Graph):
     assert square_graph.is_adjacent("a", "b")
     assert not square_graph.is_adjacent("a", "c")
     
+    with pytest.raises(ValueError):
+        square_graph.is_adjacent("foobar", "b")
+        square_graph.is_adjacent("a", "foobar")
+    
 def test_neighbors_of(square_graph: Graph):
     assert square_graph.neighbors_of("a") == {"b", "d"}
+    
+    with pytest.raises(ValueError):
+        square_graph.neighbors_of("foobar")
+
+def test_num_vertices(square_graph: Graph):
+    assert square_graph.vertex_count == 4
+
+def test_num_edges(square_graph: Graph):
+    assert square_graph.edge_count == 4

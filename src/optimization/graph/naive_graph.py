@@ -115,6 +115,12 @@ class NaiveGraph(Graph[V]):
         return NaiveGraph(set(), set())
 
     def is_adjacent(self, v1: V, v2: V) -> bool:
+        if v1 not in self.vertices:
+            raise ValueError(f'v1: {v1!r} not in vertices')
+
+        if v2 not in self.vertices:
+            raise ValueError(f'v2: {v2!r} not in vertices')
+
         # TODO deal with other types of edges
         return Edge(v1, v2) in self._edges
 
