@@ -7,6 +7,104 @@ import re
 from abc import ABCMeta, abstractmethod
 
 V = TypeVar('V')
+W = TypeVar('W')
+
+class Edge(Generic[V]):
+    def __init__(self, v1: V, v2: V, label: str | None = None):
+        self.v1 = v1
+        self.v2 = v2
+        
+        self._label = label
+       
+    def __str__(self) -> str:
+        if self._label:
+            return self._label
+        else:
+            return f"{self.v1}-{self.v2}"
+        
+    def __repr__(self) -> str:
+        return f"Edge(v1={self.v1!r}, v2={self.v2!r}, label={self._label!r})"
+    
+    def __getitem__(self, i) -> V:
+        if i == 0:
+            return self.v1
+        elif i == 1:
+            return self.v2
+        else:
+            # TODO: hypergraph support?
+            raise ValueError("Edge does not have more than two vertices")
+        
+    def __iter__(self):
+        return iter((self.v1, self.v2))
+    
+    def __tuple__(self):
+        return (self.v1, self.v2)
+            
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, self.__class__):
+            return False
+        
+        # compare labels only if the user set one
+        if self._label and self._label != value._label:
+            return False
+        
+        return (self.v1 == value.v1 and self.v2 == value.v2) or (self.v1 == value.v2 and self.v2 == value.v1)
+    
+    def __hash__(self) -> int:
+        if self._label:
+            return hash((self.v1, self.v2, self._label))
+        else:
+            return hash((self.v1, self.v2))
+    
+class WeightedEdge(Generic[V, W], Edge[V]):
+    def __init__(self, v1: V, v2: V, weight: W, label: str | None = None):
+        super().__init__(v1, v2, label)
+
+        self.weight = weight
+        
+    def __str__(self) -> str:
+        if self._label:
+            return f"{self._label}={self.weight}"
+        else:
+            return f"{self.v1}-({self.weight})-{self.v2}"
+        
+    def __repr__(self) -> str:
+        return f"WeightedEdge(v1={self.v1}, v2={self.v2}, weight={self.weight}, label={self._label})"
+
+    def __eq__(self, value: object) -> bool:
+        if super().__eq__(value):
+            return self.weight == value.weight # type: ignore
+        else:
+            return False
+        
+    def __hash__(self) -> int:
+        return hash((super().__hash__(), self.weight))
+    
+class DirectedEdge(Edge[V]):
+    def __str__(self) -> str:
+        if self._label:
+            return self._label
+        else:
+            return f"{self.v1}>{self.v2}"
+        
+    def __repr__(self) -> str:
+        return f"DirectedEdge(v1={self.v1!r}, v2={self.v2!r}, label={self._label!r})"
+            
+    def __eq__(self, value: object) -> bool:
+        if super().__eq__(value):
+            return self.v1 == value.v1 and self.v2 == value.v2 # type: ignore
+        else:
+            return False
+    
+class DirectedWeightedEdge(DirectedEdge[V], WeightedEdge[V, W]):
+    def __str__(self) -> str:
+        if self._label:
+            return f"{self._label}={self.weight}"
+        else:
+            return f"{self.v1}-({self.weight})->{self.v2}"
+        
+    def __repr__(self) -> str:
+        return f"DirectedWeightedEdge(v1={self.v1!r}, v2={self.v2!r}, weight={self.weight}, label={self._label!r})"
 
 class Graph(Generic[V], metaclass=ABCMeta):
     @abstractmethod
@@ -25,7 +123,7 @@ class Graph(Generic[V], metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def edges(self) -> Iterable[Tuple[V, V]]:
+    def edges(self) -> Iterable[Edge[V]]:
         """Get the edges in the graph"""
         pass
 
@@ -48,7 +146,7 @@ class Graph(Generic[V], metaclass=ABCMeta):
         pass
     
     @abstractmethod
-    def add_edge(self, edge: Tuple[V, V]):
+    def add_edge(self, edge: Edge[V]):
         """Add an edge to the graph.
 
         Raises a ValueError if either vertex of the edge is not present in the graph.
@@ -56,7 +154,7 @@ class Graph(Generic[V], metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def remove_edge(self, edge: Tuple[V, V]):
+    def remove_edge(self, edge: Edge[V]):
         """Remove an edge from the graph.
 
         Raises a ValueError if the edge is not present in the graph.
@@ -77,7 +175,7 @@ class Graph(Generic[V], metaclass=ABCMeta):
     
     @classmethod
     @abstractmethod
-    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Tuple[V, V]]) -> Graph[V]:
+    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> Graph[V]:
         """Construct a graph from a collection of vertices and a collection of edges.
         
         Args:
@@ -87,7 +185,7 @@ class Graph(Generic[V], metaclass=ABCMeta):
         pass
 
     @classmethod
-    def from_edges(cls, edges: Collection[Tuple[V, V]]) -> Graph[V]:
+    def from_edges(cls, edges: Collection[Edge[V]]) -> Graph[V]:
         """Construct a graph from a collection of 2-tuple edges consisting of the two connected vertices by each edge."""
         vertices = set()
         

@@ -3,12 +3,12 @@ from typing import Collection, Set, List, Dict, TypeVar, Tuple, Hashable, Self
 
 import numpy as np
 
-from .graph import Graph
+from .graph import Edge, Graph
 
 V = TypeVar('V', bound=Hashable)
 
 class NaiveGraph(Graph[V]):
-    def __init__(self, vertices: Collection[V], edges: Collection[Tuple[V, V]]):
+    def __init__(self, vertices: Collection[V], edges: Collection[Edge[V]]):
         self._vertices = set(vertices)
         self._edges = list(edges)
 
@@ -17,7 +17,7 @@ class NaiveGraph(Graph[V]):
         return self._vertices
 
     @property
-    def edges(self) -> List[Tuple[V, V]]:
+    def edges(self) -> List[Edge[V]]:
         return self._edges # type: ignore
         
     def neighbors_of(self, v: V) -> Set[V]:
@@ -107,7 +107,7 @@ class NaiveGraph(Graph[V]):
         return self.__dict__ == value.__dict__
 
     @classmethod
-    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Tuple[V, V]]) -> NaiveGraph[V]:
+    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> NaiveGraph[V]:
         return NaiveGraph(vertices, edges)
 
     @classmethod
@@ -123,19 +123,11 @@ class NaiveGraph(Graph[V]):
     def remove_vertex(self, v: V):
         self._vertices.remove(v)
 
-    def add_edge(self, edge: Tuple[V, V]):
+    def add_edge(self, edge: Edge[V]):
         if self.is_adjacent(*edge):
             return
         else:
             self._edges.append(edge)
 
-    def remove_edge(self, edge: Tuple[V, V]):
-        try:
-            self._edges.remove(edge)
-        except ValueError:
-            pass
-
-        try:
-            self._edges.remove((edge[1], edge[0]))
-        except ValueError:
-            pass
+    def remove_edge(self, edge: Edge[V]):
+        self._edges.remove(edge)

@@ -1,5 +1,5 @@
 from typing import Collection, Iterable, Set, Tuple, Dict
-from .graph import Graph, V
+from .graph import Edge, Graph, V
 
 class AdjacencySet(Graph[V]):
     def __init__(self, neighbor_dict: Dict[V, Set[V]], digraph=False):
@@ -16,11 +16,11 @@ class AdjacencySet(Graph[V]):
         return self.neighbor_dict.keys()
 
     @property
-    def edges(self) -> Iterable[Tuple[V, V]]:
-        edges: Set[Tuple[V, V]] = set()
+    def edges(self) -> Iterable[Edge[V]]:
+        edges: Set[Edge[V]] = set()
 
         for v1, neighbors in self.neighbor_dict.items():
-            edges.update({(v1, v2) for v2 in neighbors})
+            edges.update({Edge(v1, v2) for v2 in neighbors})
 
         return edges
 
@@ -43,7 +43,7 @@ class AdjacencySet(Graph[V]):
         for v1, neighbors in self.neighbor_dict.items():
             neighbors.discard(v)
 
-    def add_edge(self, edge: Tuple[V, V]):
+    def add_edge(self, edge: Edge[V]):
         if edge[0] not in self.neighbor_dict.keys():
             raise ValueError(f"edge[0]: {edge[0]!r} not in vertices")
         if edge[1] not in self.neighbor_dict.keys():
@@ -54,7 +54,7 @@ class AdjacencySet(Graph[V]):
         if not self.is_digraph:
             self.neighbor_dict[edge[1]].add(edge[0])
 
-    def remove_edge(self, edge: Tuple[V, V]):
+    def remove_edge(self, edge: Edge[V]):
         self.neighbor_dict[edge[0]].remove(edge[1])
         
         if not self.is_digraph:
@@ -72,7 +72,7 @@ class AdjacencySet(Graph[V]):
             raise NotImplementedError
 
     @classmethod
-    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Tuple[V, V]]) -> Graph[V]:
+    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> Graph[V]:
         d = {v: set() for v in vertices}
         for edge in edges:
             d.setdefault(edge[0], set()).add(edge[1])

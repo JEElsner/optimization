@@ -15,19 +15,18 @@ def singleton():
     return NaiveGraph(set("a"), set())
 
 def test_from_str(empty_graph):
-    g = NaiveGraph.from_str("ab bc cd da")
+    g = NaiveGraph.from_str("a-b b-c c-d d-a")
     assert g.vertices == {"a", "b", "c", "d"}
     assert g.edges == [("a", "b"), ("b", "c"), ("c", "d"), ("d", "a")]
 
     assert NaiveGraph.from_str("") == empty_graph
 
-@pytest.mark.xfail(reason="deal with singleton case")
+@pytest.mark.xfail("not in same order every time")
 def test_to_str(square_graph, empty_graph, singleton):
-    assert square_graph.to_char_string() == "ab bc cd da"
+    assert square_graph.to_char_string() == "a-b b-c c-d d-a"
     assert empty_graph.to_char_string() == ""
 
-    # TODO: add feature to `to_char_string` to deal with vertices not connected to any others
-    assert singleton.to_char_string() == "#a"
+    assert singleton.to_char_string() == "a"
 
 def test_eq(square_graph):
     # TODO: probably better to make a deep copy

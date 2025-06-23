@@ -1,8 +1,7 @@
 from typing import Collection, Set, Tuple, List
 import numpy as np
 
-from ..set.sorted_set import SortedSet
-from .graph import Graph, V
+from .graph import Graph, Edge, V
 
 class IncidenceMatrix(Graph[V]):
     def __init__(self, vertices: List[V], matrix: np.typing.ArrayLike):
@@ -15,12 +14,12 @@ class IncidenceMatrix(Graph[V]):
         return self._vertices
     
     @property
-    def edges(self) -> Set[Tuple[V, V]]:
-        edges: Set[Tuple[V, V]] = set()
+    def edges(self) -> Set[Edge[V]]:
+        edges: Set[Edge[V]] = set()
 
         for j, col in enumerate(self.matrix.T):
             indices = np.where(col)
-            edge = (self.vertices[indices[0]], self.vertices[indices[1]])
+            edge = Edge(self.vertices[indices[0]], self.vertices[indices[1]])
             edges.add(edge)
 
         return edges
@@ -44,11 +43,11 @@ class IncidenceMatrix(Graph[V]):
         idx = self.get_vertex_index(v)
         self.matrix =  np.concat((self.matrix[:idx], self.matrix[idx+1:]))
 
-    def add_edge(self, edge: Tuple[V, V]):
+    def add_edge(self, edge: Edge[V]):
         self.matrix = np.pad(self.matrix, ((0, 0), (0, 1)), mode='constant', constant_values='0')
         self.matrix[self.get_vertex_index(edge[0]), -1] = self.matrix[self.get_vertex_index(edge[1]), -1] = 1
 
-    def remove_edge(self, edge: Tuple[V, V]):
+    def remove_edge(self, edge: Edge[V]):
         idx = self.get_edge_index(edge).pop()
         self.matrix =  np.concat((self.matrix[:, :idx], self.matrix[idx+1:]), axis=1)
         
@@ -56,7 +55,7 @@ class IncidenceMatrix(Graph[V]):
         """Get the incidence matrix row index of the vertex."""
         return self.vertices.index(v)
     
-    def get_edge_index(self, edge: Tuple[V, V]) -> Set[int]:
+    def get_edge_index(self, edge: Edge[V]) -> Set[int]:
         """Get the incidence matrix column index of the provided edge."""
         return set(np.where(self.matrix[edge[0]] & self.matrix[edge[1]])) # type: ignore
 
@@ -69,7 +68,7 @@ class IncidenceMatrix(Graph[V]):
         return self.matrix.shape[1]
 
     @classmethod
-    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Tuple[V, V]]) -> Graph[V]:
+    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> Graph[V]:
         m = len(vertices)
         n = len(edges)
         
