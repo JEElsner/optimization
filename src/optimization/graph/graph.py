@@ -11,10 +11,18 @@ W = TypeVar('W')
 
 class Edge(Generic[V]):
     def __init__(self, v1: V, v2: V, label: str | None = None):
-        self.v1 = v1
-        self.v2 = v2
+        self._v1 = v1
+        self._v2 = v2
         
         self._label = label
+        
+    @property
+    def v1(self) -> V:
+        return self._v1
+    
+    @property
+    def v2(self) -> V:
+        return self._v2
        
     def __str__(self) -> str:
         if self._label:
@@ -32,7 +40,7 @@ class Edge(Generic[V]):
             return self.v2
         else:
             # TODO: hypergraph support?
-            raise ValueError("Edge does not have more than two vertices")
+            raise IndexError("Edge does not have more than two vertices")
         
     def __iter__(self):
         return iter((self.v1, self.v2))
@@ -44,17 +52,15 @@ class Edge(Generic[V]):
         if not isinstance(value, self.__class__):
             return False
         
-        # compare labels only if the user set one
-        if self._label and self._label != value._label:
+        if self._label != value._label:
             return False
         
         return (self.v1 == value.v1 and self.v2 == value.v2) or (self.v1 == value.v2 and self.v2 == value.v1)
     
     def __hash__(self) -> int:
-        if self._label:
-            return hash((self.v1, self.v2, self._label))
-        else:
-            return hash((self.v1, self.v2))
+        edge_hash = min(hash(self.v1), hash(self.v2))
+
+        return hash((edge_hash, self._label))
     
 class WeightedEdge(Generic[V, W], Edge[V]):
     def __init__(self, v1: V, v2: V, weight: W, label: str | None = None):
@@ -95,6 +101,9 @@ class DirectedEdge(Edge[V]):
             return self.v1 == value.v1 and self.v2 == value.v2 # type: ignore
         else:
             return False
+        
+    def __hash__(self) -> int:
+        return hash((self.v1, self.v2, self._label))
     
 class DirectedWeightedEdge(DirectedEdge[V], WeightedEdge[V, W]):
     def __str__(self) -> str:
