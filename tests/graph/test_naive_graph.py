@@ -1,47 +1,37 @@
 import pytest
 
-from optimization.graph import NaiveGraph
+from optimization.graph import Edge, Graph, NaiveGraph, AdjacencySet, IncidenceMatrix
+
+@pytest.fixture(params=[NaiveGraph, AdjacencySet, IncidenceMatrix])
+def any_graph(request) -> type:
+    return request.param
 
 @pytest.fixture
-def square_graph():
-    return NaiveGraph.from_str("ab bc cd da")
+def empty_graph(any_graph) -> Graph:
+    return any_graph._empty_graph()
 
 @pytest.fixture
-def empty_graph():
-    return NaiveGraph(set(), set())
+def vertices():
+    return {"a", "b", "c", "d"}
 
 @pytest.fixture
-def singleton():
-    return NaiveGraph(set("a"), set())
+def edges(vertices):
+    vertices = list(vertices)
+    return [Edge(vertices[0], vertices[1]),
+            Edge(vertices[1], vertices[2]),
+            Edge(vertices[2], vertices[3]),
+            Edge(vertices[3], vertices[0]),
+            ]
 
-def test_from_str(empty_graph):
-    g = NaiveGraph.from_str("a-b b-c c-d d-a")
-    assert g.vertices == {"a", "b", "c", "d"}
-    assert g.edges == [("a", "b"), ("b", "c"), ("c", "d"), ("d", "a")]
+@pytest.fixture
+def singleton(any_graph) -> Graph:
+    return Graph.from_vertices_and_edges({"a"}, list())
 
-    assert NaiveGraph.from_str("") == empty_graph
+def test_empty_graph(empty_graph: Graph):
+    assert set(empty_graph.vertices) == set()
+    assert set(empty_graph.edges) == set()
 
-@pytest.mark.xfail("not in same order every time")
-def test_to_str(square_graph, empty_graph, singleton):
-    assert square_graph.to_char_string() == "a-b b-c c-d d-a"
-    assert empty_graph.to_char_string() == ""
-
-    assert singleton.to_char_string() == "a"
-
-def test_eq(square_graph):
-    # TODO: probably better to make a deep copy
-    assert square_graph == square_graph
-
-@pytest.mark.xfail(reason="Vertices not sorted in same way every time")
-def test_vertex_indices(square_graph):
-    assert square_graph.vertex_indices == {"a": 0, "b": 1, "c": 2, "d": 3}
-    
-@pytest.mark.xfail(reason="Vertices not sorted in same way every time")
-def test_adjacency_matrix(square_graph):
-    assert square_graph.adjacency_matrix == False
-
-def test_neighbors(square_graph, singleton):
-    assert square_graph.neighbors_of("a") == {"b", "d"}
-    assert square_graph.neighbors_of("c") == {"b", "d"}
-
-    assert singleton.neighbors_of("a") == set()
+def test_from_vertices_and_edges(any_graph: Graph, vertices, edges):
+    g = any_graph.from_vertices_and_edges(vertices, edges)
+    assert set(g.vertices) == set(vertices)
+    assert set(g.edges) == set(edges)
