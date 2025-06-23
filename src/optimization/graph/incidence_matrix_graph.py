@@ -18,7 +18,7 @@ class IncidenceMatrix(Graph[V]):
         edges: Set[Edge[V]] = set()
 
         for j, col in enumerate(self.matrix.T):
-            indices = np.where(col)
+            indices = np.where(col)[0]
             edge = Edge(self.vertices[indices[0]], self.vertices[indices[1]])
             edges.add(edge)
 
