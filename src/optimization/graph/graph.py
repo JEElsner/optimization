@@ -23,6 +23,11 @@ class Edge(Generic[V]):
         
         self._label = label
         
+    @staticmethod
+    def from_args(v1: V, v2: V, weight=None) -> Edge:
+        """Uniform constructor for all edge types (i.e. weight can be passed to all versions.)"""
+        return Edge(v1, v2)
+        
     @property
     def v1(self) -> V:
         return self._v1
@@ -104,6 +109,10 @@ class WeightedEdge(Generic[V, W], Edge[V]):
         self.weight = weight
         """The weight of the edge."""
         
+    @staticmethod
+    def from_args(v1: V, v2: V, weight=None) -> Edge:
+        return WeightedEdge(v1, v2, weight)
+        
     def as_dict(self): # type: ignore
         d = super().as_dict()
         d["weight"] = self.weight # type: ignore
@@ -124,6 +133,10 @@ class WeightedEdge(Generic[V, W], Edge[V]):
 class DirectedEdge(Edge[V]):
     """Represents a directed edge in a graph."""
 
+    @staticmethod
+    def from_args(v1: V, v2: V, weight=None) -> Edge:
+        return DirectedEdge(v1, v2)
+        
     def __str__(self) -> str:
         if self._label:
             return self._label
@@ -139,6 +152,10 @@ class DirectedEdge(Edge[V]):
 class DirectedWeightedEdge(DirectedEdge[V], WeightedEdge[V, W]):
     """Represents a directed and weighted edge in a graph."""
 
+    @staticmethod
+    def from_args(v1: V, v2: V, weight=None) -> Edge:
+        return DirectedWeightedEdge(v1, v2, weight)
+        
     def __str__(self) -> str:
         if self._label:
             return f"{self._label}={self.weight}"
@@ -156,6 +173,11 @@ class AbstractGraph(Generic[V], metaclass=ABCMeta):
         If the graph is directed, this is true only if v2 is accessible from v1.
         """
         pass
+    
+    def get_connecting_edges(self, v1: V, v2: V) -> Collection[Edge[V]]:
+        """Return the edges connecting v1 and v2"""
+        # TODO: Implement
+        raise NotImplementedError()
     
     @property
     @abstractmethod
@@ -187,8 +209,14 @@ class AbstractGraph(Generic[V], metaclass=ABCMeta):
         """
         pass
     
+    @classmethod
     @abstractmethod
-    def add_edge(self, edge: Edge[V]):
+    def create_edge_from_vertices(cls, v1: V, v2: V, weight = None) -> Edge:
+        """Create an edge for the given graph type given the vertices and (possibly) weight."""
+        pass
+    
+    @abstractmethod
+    def add_edge(self, v1: V, v2: V, weight=None):
         """Add an edge to the graph.
 
         Raises a ValueError if either vertex of the edge is not present in the graph.
@@ -196,7 +224,7 @@ class AbstractGraph(Generic[V], metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def remove_edge(self, edge: Edge[V]):
+    def remove_edge(self, edge):
         """Remove an edge from the graph.
 
         Raises a ValueError if the edge is not present in the graph.
@@ -300,10 +328,20 @@ class AbstractGraph(Generic[V], metaclass=ABCMeta):
 class GraphRepresentation(AbstractGraph[V]):
     pass
 
+
 class GraphType(AbstractGraph[V]):
-    pass
+    EDGE_TYPE = Edge
+    
+    @classmethod
+    def create_edge_from_vertices(cls, v1: V, v2: V, weight=None) -> Edge:
+        return cls.EDGE_TYPE.from_args(v1, v2, weight)
+    
+class NormalGraph(GraphType[V]):
+    EDGE_TYPE = Edge
 
 class WeightedGraph(Generic[V, W], GraphType[V]):
+    EDGE_TYPE = WeightedEdge
+
     @abstractmethod
     def get_edge_weight(self, v1: V, v2: V) -> W:
         """Get the weight associated with the given edge."""
@@ -315,13 +353,14 @@ class WeightedGraph(Generic[V, W], GraphType[V]):
         pass
 
 class DirectedGraph(GraphType[V]):
-    pass
+    EDGE_TYPE = DirectedEdge
 
 class DirectedWeightedGraph(DirectedGraph[V], WeightedGraph[V, W]):
-    pass
+    EDGE_TYPE = DirectedWeightedEdge
 
 class Graph(GraphType[V], GraphRepresentation[V]):
     @classmethod
-    def from_types[G](cls, type_: GraphType[V], repr: GraphRepresentation[V]): # type: ignore
-        raise NotImplementedError()
+    def from_types(cls, type_, repr_) -> type:
+        name = f"{type_}_{repr_}"
+        return type(name, (type_, repr_), dict())
     

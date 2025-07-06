@@ -1,10 +1,10 @@
 from typing import Collection, Iterable, Set, Tuple, Dict
-from .graph import Edge, AbstractGraph, GraphRepresentation, V
+from .graph import Edge, AbstractGraph, GraphRepresentation, V, DirectedGraph
 
 class AdjacencySet(GraphRepresentation[V]):
-    def __init__(self, neighbor_dict: Dict[V, Set[V]], digraph=False):
-        self.is_digraph = digraph
-        if not digraph:
+    def __init__(self, neighbor_dict: Dict[V, Set[V]]):
+
+        if not isinstance(self, DirectedGraph):
             for v1, neighbors in neighbor_dict.items():
                 for v2 in neighbors:
                     neighbor_dict.setdefault(v2, set()).add(v1)
@@ -51,21 +51,21 @@ class AdjacencySet(GraphRepresentation[V]):
         for v1, neighbors in self.neighbor_dict.items():
             neighbors.discard(v)
 
-    def add_edge(self, edge: Edge[V]):
-        if edge[0] not in self.neighbor_dict.keys():
-            raise ValueError(f"edge[0]: {edge[0]!r} not in vertices")
-        if edge[1] not in self.neighbor_dict.keys():
-            raise ValueError(f"edge[1]: {edge[1]!r} not in vertices")
+    def add_edge(self, v1: V, v2: V, weight=None):
+        if v1 not in self.neighbor_dict.keys():
+            raise ValueError(f"edge[0]: {v1!r} not in vertices")
+        if v2 not in self.neighbor_dict.keys():
+            raise ValueError(f"edge[1]: {v2!r} not in vertices")
         
-        self.neighbor_dict[edge[0]].add(edge[1])
+        self.neighbor_dict[v1].add(v2)
 
-        if not self.is_digraph:
-            self.neighbor_dict[edge[1]].add(edge[0])
+        if not isinstance(self, DirectedGraph):
+            self.neighbor_dict[v2].add(v1)
 
-    def remove_edge(self, edge: Edge[V]):
+    def remove_edge(self, edge: Edge):
         self.neighbor_dict[edge[0]].remove(edge[1])
         
-        if not self.is_digraph:
+        if not isinstance(self, DirectedGraph):
             self.neighbor_dict[edge[1]].remove(edge[0])
 
     @property
@@ -82,11 +82,11 @@ class AdjacencySet(GraphRepresentation[V]):
         for edge in edges:
             d.setdefault(edge[0], set()).add(edge[1])
 
-        return AdjacencySet(d)
+        return cls(d)
 
     @classmethod
     def _empty_graph(cls) -> AbstractGraph[V]:
-        return AdjacencySet(dict())
+        return cls(dict())
 
     def to_char_string(self) -> str:
         raise NotImplementedError

@@ -80,7 +80,8 @@ class NaiveGraph(GraphRepresentation[V]):
                 if matrix[i, j]:
                     _edges.append((i, j))
                     
-        return NaiveGraph(_vertices, _edges)
+        # TODO: remove ignore type. I have a feeling this will cause an error
+        return cls(_vertices, _edges) # type: ignore
     
     def to_char_string(self) -> str:
         """Return a compact string representing the _edges of graphs with
@@ -108,11 +109,11 @@ class NaiveGraph(GraphRepresentation[V]):
 
     @classmethod
     def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> NaiveGraph[V]:
-        return NaiveGraph(vertices, edges)
+        return cls(vertices, edges)
 
     @classmethod
     def _empty_graph(cls) -> NaiveGraph[V]:
-        return NaiveGraph(set(), set())
+        return cls(set(), set())
 
     def is_adjacent(self, v1: V, v2: V) -> bool:
         if v1 not in self.vertices:
@@ -130,11 +131,12 @@ class NaiveGraph(GraphRepresentation[V]):
     def remove_vertex(self, v: V):
         self._vertices.remove(v)
 
-    def add_edge(self, edge: Edge[V]):
-        if self.is_adjacent(*edge):
+    def add_edge(self, v1: V, v2: V, weight = None):
+        if self.is_adjacent(v1, v2):
             return
         else:
+            edge = self.create_edge_from_vertices(v1, v2, weight)
             self._edges.append(edge)
 
-    def remove_edge(self, edge: Edge[V]):
+    def remove_edge(self, edge: Edge):
         self._edges.remove(edge)

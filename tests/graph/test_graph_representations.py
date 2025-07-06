@@ -1,10 +1,11 @@
 import pytest
 
+from optimization.graph.graph import Graph, NormalGraph
 from optimization.graph import Edge, AbstractGraph, NaiveGraph, AdjacencySet, IncidenceMatrix
 
 @pytest.fixture(params=[NaiveGraph, AdjacencySet, IncidenceMatrix])
 def any_graph(request) -> type:
-    return request.param
+    return Graph.from_types(NormalGraph, request.param)
 
 @pytest.fixture
 def empty_graph(any_graph) -> AbstractGraph:

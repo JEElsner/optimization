@@ -44,9 +44,9 @@ class IncidenceMatrix(GraphRepresentation[V]):
         idx = self.get_vertex_index(v)
         self.matrix =  np.concat((self.matrix[:idx], self.matrix[idx+1:]))
 
-    def add_edge(self, edge: Edge[V]):
+    def add_edge(self, v1: V, v2: V, weight = None):
         self.matrix = np.pad(self.matrix, ((0, 0), (0, 1)), mode='constant', constant_values='0')
-        self.matrix[self.get_vertex_index(edge[0]), -1] = self.matrix[self.get_vertex_index(edge[1]), -1] = 1
+        self.matrix[self.get_vertex_index(v1), -1] = self.matrix[self.get_vertex_index(v2), -1] = 1
 
     def remove_edge(self, edge: Edge[V]):
         idx = self.get_edge_index(edge).pop()
@@ -79,11 +79,11 @@ class IncidenceMatrix(GraphRepresentation[V]):
         for i, (v1, v2) in enumerate(edges):
             matrix[vertices.index(v1), i] = matrix[vertices.index(v2), i] = 1
 
-        return IncidenceMatrix(vertices, matrix)
+        return cls(vertices, matrix)
 
     @classmethod
     def _empty_graph(cls) -> AbstractGraph[V]:
-        return IncidenceMatrix(list(), np.zeros(shape=(0, 0)))
+        return cls(list(), np.zeros(shape=(0, 0)))
 
 class IntIncidenceMatrix(IncidenceMatrix[int]):
     def __init__(self, matrix: np.typing.ArrayLike):
