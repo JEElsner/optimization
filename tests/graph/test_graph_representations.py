@@ -1,13 +1,13 @@
 import pytest
 
-from optimization.graph import Edge, Graph, NaiveGraph, AdjacencySet, IncidenceMatrix
+from optimization.graph import Edge, AbstractGraph, NaiveGraph, AdjacencySet, IncidenceMatrix
 
 @pytest.fixture(params=[NaiveGraph, AdjacencySet, IncidenceMatrix])
 def any_graph(request) -> type:
     return request.param
 
 @pytest.fixture
-def empty_graph(any_graph) -> Graph:
+def empty_graph(any_graph) -> AbstractGraph:
     return any_graph._empty_graph()
 
 @pytest.fixture
@@ -27,14 +27,14 @@ def edges(vertices):
             ]
 
 @pytest.fixture
-def singleton(any_graph) -> Graph:
-    return Graph.from_vertices_and_edges({"a"}, list())
+def singleton(any_graph) -> AbstractGraph:
+    return AbstractGraph.from_vertices_and_edges({"a"}, list())
 
-def test_empty_graph(empty_graph: Graph):
+def test_empty_graph(empty_graph: AbstractGraph):
     assert set(empty_graph.vertices) == set()
     assert set(empty_graph.edges) == set()
 
-def test_from_vertices_and_edges(any_graph: Graph, vertices, edges):
+def test_from_vertices_and_edges(any_graph: AbstractGraph, vertices, edges):
     g = any_graph.from_vertices_and_edges(vertices, edges)
     assert set(g.vertices) == set(vertices)
     assert set(g.edges) == set(edges)
@@ -49,7 +49,7 @@ def test_from_str(any_graph, vertices, edges):
     assert set(g.vertices) == set(vertices)
     assert set(g.edges) == set(edges)
 
-def test_is_adjacent(square_graph: Graph):
+def test_is_adjacent(square_graph: AbstractGraph):
     assert square_graph.is_adjacent("a", "b")
     assert not square_graph.is_adjacent("a", "c")
     
@@ -57,14 +57,14 @@ def test_is_adjacent(square_graph: Graph):
         square_graph.is_adjacent("foobar", "b")
         square_graph.is_adjacent("a", "foobar")
     
-def test_neighbors_of(square_graph: Graph):
+def test_neighbors_of(square_graph: AbstractGraph):
     assert square_graph.neighbors_of("a") == {"b", "d"}
     
     with pytest.raises(ValueError):
         square_graph.neighbors_of("foobar")
 
-def test_num_vertices(square_graph: Graph):
+def test_num_vertices(square_graph: AbstractGraph):
     assert square_graph.vertex_count == 4
 
-def test_num_edges(square_graph: Graph):
+def test_num_edges(square_graph: AbstractGraph):
     assert square_graph.edge_count == 4

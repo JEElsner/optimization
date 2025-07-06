@@ -2,14 +2,22 @@ from __future__ import annotations
 
 from typing import TypeVar, Generic, Collection, Tuple, Set, Iterable
 
+import warnings
+
 import re
 
 from abc import ABCMeta, abstractmethod
 
 V = TypeVar('V')
 W = TypeVar('W')
+G = TypeVar('G', bound=Graph)
 
 class Edge(Generic[V]):
+    """Represents an (undirected) edge in a graph.
+    
+    Subclasses exist for directed and weighted edges.
+    """
+
     def __init__(self, v1: V, v2: V, label: str | None = None):
         self._v1 = v1
         self._v2 = v2
@@ -63,10 +71,13 @@ class Edge(Generic[V]):
         return hash((edge_hash, self._label))
     
 class WeightedEdge(Generic[V, W], Edge[V]):
+    """Represents a weighted edge in a graph."""
+
     def __init__(self, v1: V, v2: V, weight: W, label: str | None = None):
         super().__init__(v1, v2, label)
 
         self.weight = weight
+        """The weight of the edge."""
         
     def __str__(self) -> str:
         if self._label:
@@ -87,6 +98,8 @@ class WeightedEdge(Generic[V, W], Edge[V]):
         return hash((super().__hash__(), self.weight))
     
 class DirectedEdge(Edge[V]):
+    """Represents a directed edge in a graph."""
+
     def __str__(self) -> str:
         if self._label:
             return self._label
@@ -106,6 +119,8 @@ class DirectedEdge(Edge[V]):
         return hash((self.v1, self.v2, self._label))
     
 class DirectedWeightedEdge(DirectedEdge[V], WeightedEdge[V, W]):
+    """Represents a directed and weighted edge in a graph."""
+
     def __str__(self) -> str:
         if self._label:
             return f"{self._label}={self.weight}"
@@ -115,7 +130,7 @@ class DirectedWeightedEdge(DirectedEdge[V], WeightedEdge[V, W]):
     def __repr__(self) -> str:
         return f"DirectedWeightedEdge(v1={self.v1!r}, v2={self.v2!r}, weight={self.weight}, label={self._label!r})"
 
-class Graph(Generic[V], metaclass=ABCMeta):
+class AbstractGraph(Generic[V], metaclass=ABCMeta):
     @abstractmethod
     def is_adjacent(self, v1: V, v2: V) -> bool:
         """Returns true if v1 and v2 are adjacent.
@@ -184,7 +199,7 @@ class Graph(Generic[V], metaclass=ABCMeta):
     
     @classmethod
     @abstractmethod
-    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> Graph[V]:
+    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> AbstractGraph[V]:
         """Construct a graph from a collection of vertices and a collection of edges.
         
         Args:
@@ -194,7 +209,7 @@ class Graph(Generic[V], metaclass=ABCMeta):
         pass
 
     @classmethod
-    def from_edges(cls, edges: Collection[Edge[V]]) -> Graph[V]:
+    def from_edges(cls, edges: Collection[Edge[V]]) -> AbstractGraph[V]:
         """Construct a graph from a collection of 2-tuple edges consisting of the two connected vertices by each edge."""
         vertices = set()
         
@@ -204,7 +219,7 @@ class Graph(Generic[V], metaclass=ABCMeta):
         return cls.from_vertices_and_edges(vertices, edges)
 
     @classmethod
-    def from_str(cls, s: str) -> Graph[V]:
+    def from_str(cls, s: str) -> AbstractGraph[V]:
         """Read graphs stored in a simple format string.
         
         A string representation of a graph consists of edges and vertices
@@ -255,10 +270,46 @@ class Graph(Generic[V], metaclass=ABCMeta):
     
     @classmethod
     @abstractmethod
-    def _empty_graph(cls) -> Graph[V]:
+    def _empty_graph(cls) -> AbstractGraph[V]:
         """Returns an empty graph."""
         # Necessary for constructors to return empty graphs of different representations
         pass
 
     def to_char_string(self) -> str:
         return " ".join(map(str, self.vertices)) + " " + " ".join(map(lambda e: f"{e[0]}-{e[1]}", self.edges))
+    
+
+class GraphRepresentation(AbstractGraph[V]):
+    pass
+
+class GraphType(AbstractGraph[V]):
+    pass
+
+class WeightedGraph(Generic[V, W], GraphType[V]):
+    @abstractmethod
+    def get_edge_weight(self, edge: Edge[V] | Tuple[V, V]) -> W:
+        """Get the weight associated with the given edge."""
+        
+        if isinstance(edge, WeightedEdge):
+            warnings.warn("Warning: edge is weighted edge (possibly with different weight)")
+
+        pass
+
+    @abstractmethod
+    def set_edge_weight(self, edge: Edge[V] | Tuple[V, V], weight: W):
+
+        if isinstance(edge, WeightedEdge):
+            warnings.warn("Warning: edge is weighted edge (possibly with different weight)")
+
+        pass
+
+class DirectedGraph(GraphType[V]):
+    pass
+
+class DirectedWeightedGraph(DirectedGraph[V], WeightedGraph[V, W]):
+    pass
+
+class Graph(GraphType[V], GraphRepresentation[V]):
+    @classmethod
+    def from_types[G](cls, type_: GraphType[V], repr: GraphRepresentation[V]) -> G: # type: ignore
+        pass

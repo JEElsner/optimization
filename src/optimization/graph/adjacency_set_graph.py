@@ -1,7 +1,7 @@
 from typing import Collection, Iterable, Set, Tuple, Dict
-from .graph import Edge, Graph, V
+from .graph import Edge, AbstractGraph, GraphRepresentation, V
 
-class AdjacencySet(Graph[V]):
+class AdjacencySet(GraphRepresentation[V]):
     def __init__(self, neighbor_dict: Dict[V, Set[V]], digraph=False):
         self.is_digraph = digraph
         if not digraph:
@@ -77,7 +77,7 @@ class AdjacencySet(Graph[V]):
         return len(self.edges)
 
     @classmethod
-    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> Graph[V]:
+    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> AbstractGraph[V]:
         d = {v: set() for v in vertices}
         for edge in edges:
             d.setdefault(edge[0], set()).add(edge[1])
@@ -85,7 +85,7 @@ class AdjacencySet(Graph[V]):
         return AdjacencySet(d)
 
     @classmethod
-    def _empty_graph(cls) -> Graph[V]:
+    def _empty_graph(cls) -> AbstractGraph[V]:
         return AdjacencySet(dict())
 
     def to_char_string(self) -> str:

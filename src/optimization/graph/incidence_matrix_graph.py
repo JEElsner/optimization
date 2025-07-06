@@ -1,9 +1,9 @@
 from typing import Collection, Set, Tuple, List
 import numpy as np
 
-from .graph import Graph, Edge, V
+from .graph import AbstractGraph, GraphRepresentation, Edge, V
 
-class IncidenceMatrix(Graph[V]):
+class IncidenceMatrix(GraphRepresentation[V]):
     def __init__(self, vertices: List[V], matrix: np.typing.ArrayLike):
         # TODO: maybe make vertices a one-to-one mapping in the future, so that there's no possibility of duplicate vertices
         self._vertices = vertices
@@ -69,7 +69,7 @@ class IncidenceMatrix(Graph[V]):
         return self.matrix.shape[1]
 
     @classmethod
-    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> Graph[V]:
+    def from_vertices_and_edges(cls, vertices: Collection[V], edges: Collection[Edge[V]]) -> AbstractGraph[V]:
         m = len(vertices)
         n = len(edges)
         
@@ -82,7 +82,7 @@ class IncidenceMatrix(Graph[V]):
         return IncidenceMatrix(vertices, matrix)
 
     @classmethod
-    def _empty_graph(cls) -> Graph[V]:
+    def _empty_graph(cls) -> AbstractGraph[V]:
         return IncidenceMatrix(list(), np.zeros(shape=(0, 0)))
 
 class IntIncidenceMatrix(IncidenceMatrix[int]):

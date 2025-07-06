@@ -3,11 +3,11 @@ from typing import Collection, Set, List, Dict, TypeVar, Tuple, Hashable, Self
 
 import numpy as np
 
-from .graph import Edge, Graph
+from .graph import Edge, AbstractGraph, GraphRepresentation
 
 V = TypeVar('V', bound=Hashable)
 
-class NaiveGraph(Graph[V]):
+class NaiveGraph(GraphRepresentation[V]):
     def __init__(self, vertices: Collection[V], edges: Collection[Edge[V]]):
         self._vertices = set(vertices)
         self._edges = list(edges)
