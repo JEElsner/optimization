@@ -50,7 +50,7 @@ class IncidenceMatrix(GraphRepresentation[V]):
 
     def remove_edge(self, edge: Edge[V]):
         idx = self.get_edge_index(edge).pop()
-        self.matrix =  np.concat((self.matrix[:, :idx], self.matrix[idx+1:]), axis=1)
+        self.matrix =  np.concat((self.matrix[:, :idx], self.matrix[:, idx+1:]), axis=1)
         
     def get_vertex_index(self, v: V) -> int:
         """Get the incidence matrix row index of the vertex."""
@@ -58,7 +58,9 @@ class IncidenceMatrix(GraphRepresentation[V]):
     
     def get_edge_index(self, edge: Edge[V]) -> Set[int]:
         """Get the incidence matrix column index of the provided edge."""
-        return set(np.where(self.matrix[edge[0]] & self.matrix[edge[1]])) # type: ignore
+        v1 = self.get_vertex_index(edge.v1)
+        v2 = self.get_vertex_index(edge.v2)
+        return set(np.where(self.matrix[v1] * self.matrix[v2])[0]) # type: ignore
 
     @property
     def vertex_count(self) -> int:

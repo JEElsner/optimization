@@ -69,3 +69,7 @@ def test_num_vertices(square_graph: AbstractGraph):
 
 def test_num_edges(square_graph: AbstractGraph):
     assert square_graph.edge_count == 4
+    
+def test_remove_edge(square_graph: AbstractGraph, vertices, edges):
+    square_graph.remove_edge(edges[0])
+    assert set(square_graph.edges) == set(edges[1:])
