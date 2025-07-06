@@ -69,7 +69,21 @@ def test_num_vertices(square_graph: AbstractGraph):
 
 def test_num_edges(square_graph: AbstractGraph):
     assert square_graph.edge_count == 4
+
+def test_add_edge(square_graph: AbstractGraph, vertices, edges):
+    square_graph.add_edge(vertices[0], vertices[2])
+    edges.append(Edge(vertices[0], vertices[2]))
+    assert set(square_graph.edges) == set(edges)
     
 def test_remove_edge(square_graph: AbstractGraph, vertices, edges):
     square_graph.remove_edge(edges[0])
     assert set(square_graph.edges) == set(edges[1:])
+
+def test_add_vertex(square_graph: AbstractGraph, vertices):
+    v = "e"
+    square_graph.add_vertex(v)
+    assert v in square_graph.vertices
+
+def test_remove_vertex(square_graph: AbstractGraph, vertices):
+    square_graph.remove_vertex(vertices[0])
+    assert vertices[0] not in square_graph.vertices
