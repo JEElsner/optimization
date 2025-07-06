@@ -361,6 +361,6 @@ class DirectedWeightedGraph(DirectedGraph[V], WeightedGraph[V, W]):
 class Graph(GraphType[V], GraphRepresentation[V]):
     @classmethod
     def from_types(cls, type_, repr_) -> type:
-        name = f"{type_}_{repr_}"
-        return type(name, (type_, repr_), dict())
+        name = f"{type_.__name__}_{repr_.__name__}"
+        return type(name, (Graph, type_, repr_), dict())
     
