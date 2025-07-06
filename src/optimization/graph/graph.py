@@ -41,9 +41,9 @@ class Edge(Generic[V]):
         return f"Edge(v1={self.v1!r}, v2={self.v2!r}, label={self._label!r})"
     
     def __getitem__(self, i) -> V:
-        if i == 0:
+        if i == 0 or i == "v1":
             return self.v1
-        elif i == 1:
+        elif i == 1 or i == "v2":
             return self.v2
         else:
             # TODO: hypergraph support?
@@ -54,6 +54,11 @@ class Edge(Generic[V]):
     
     def __tuple__(self):
         return (self.v1, self.v2)
+    
+    def as_dict(self) -> Dict[str, Any]: 
+        """Returns a dictionary version of the edge."""
+        # Python hates you and doesn't make __dict__ and therefore **obj work the way you think it does
+        return {"v1": self.v1, "v2": self.v2}
     
     def __eq__(self, value: object) -> bool:
         if isinstance(value, tuple):
@@ -98,6 +103,11 @@ class WeightedEdge(Generic[V, W], Edge[V]):
 
         self.weight = weight
         """The weight of the edge."""
+        
+    def as_dict(self): # type: ignore
+        d = super().as_dict()
+        d["weight"] = self.weight # type: ignore
+        return d
         
     def __str__(self) -> str:
         if self._label:

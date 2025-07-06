@@ -75,6 +75,7 @@ def test_tuple_equality(any_edge, v1, v2):
     assert any_edge == (v1, v2)
     
     if not isinstance(any_edge, DirectedEdge):
+        # Assert tuple order doesn't matter for undirected edges
         assert any_edge == (v2, v1)
         
     def unwrapper(ev1, ev2):
@@ -114,27 +115,21 @@ def test_label_equality(labeled, unlabeled):
     assert unlabeled != labeled
     # assert hash(unlabeled) == hash(labeled)
 
-@pytest.mark.xfail
 def test_to_dict(any_edge, v1, v2):
-    d = dict(any_edge)
+    d = any_edge.as_dict()
     assert d["v1"] == v1
     assert d["v2"] == v2
-
+    
     if isinstance(any_edge, WeightedEdge):
         assert d["weight"] == 1
         
-    def unwrapper(dv1, dv2, d_weight = None):
-        assert dv1 == v1
-        assert dv2 == v2
+def test_dict_equality(any_edge, v1, v2):
+    d = {"v1": v1, "v2": v2}
 
-        if isinstance(any_edge, WeightedEdge):
-            assert d_weight == 1
+    if isinstance(any_edge, WeightedEdge):
+        d["weight"] = 1
 
-        if isinstance(any_edge, WeightedEdge):
-            assert d["weight"] == 1
-            
-    # unwrapper(**any_edge)
-        
+    assert any_edge == d
     
 def test_mro():
     # Not really a test, but I want this to be known
