@@ -13,24 +13,24 @@ requires-python = ">=3.13"
 readme = "README.md"
 license = {text = "MIT"}
 
-
-[tool.pdm]
-distribution = true
-
 [tool.coverage.run]
 omit = ["tests/*"]
 
-[dependency-groups]
-test = [
-    "pytest>=8.4.0",
-    "coverage>=7.9.1",
-]
-
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+[tool.pdm]
+distribution = true
 
 [tool.pdm.scripts]
 test = "coverage run -m pytest"
 cov_html = "coverage html"
 coverage = {composite = ["test", "cov_html"]}
+
+[dependency-groups]
+test = [
+    "pytest>=8.4.0",
+    "coverage>=7.9.1",
+    "pytest-cov>=6.2.1",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
