@@ -67,8 +67,21 @@ def test_hashes(v1, v2):
     # assert hash(DirectedWeightedEdge(v1, v2, 1)) != hash(DirectedWeightedEdge(v2, v1, 1))
     # assert hash(DirectedWeightedEdge(v1, v2, 1)) != hash(DirectedWeightedEdge(v1, v2, 2))
     
-def test_tuple(any_edge, v1, v2):
+def test_tuple_equality(any_edge, v1, v2):
+    # Assert casted as tuple equal
     assert tuple(any_edge) == (v1, v2)
+    
+    # Assert edge matches tuple under edge equality
+    assert any_edge == (v1, v2)
+    
+    if not isinstance(any_edge, DirectedEdge):
+        assert any_edge == (v2, v1)
+        
+    def unwrapper(ev1, ev2):
+        assert ev1 == v1
+        assert ev2 == v2
+        
+    unwrapper(*any_edge)
     
 def test_bad_getitem(any_edge):
     with pytest.raises(IndexError):
@@ -100,6 +113,28 @@ def test_label_equality(labeled, unlabeled):
     
     assert unlabeled != labeled
     # assert hash(unlabeled) == hash(labeled)
+
+@pytest.mark.xfail
+def test_to_dict(any_edge, v1, v2):
+    d = dict(any_edge)
+    assert d["v1"] == v1
+    assert d["v2"] == v2
+
+    if isinstance(any_edge, WeightedEdge):
+        assert d["weight"] == 1
+        
+    def unwrapper(dv1, dv2, d_weight = None):
+        assert dv1 == v1
+        assert dv2 == v2
+
+        if isinstance(any_edge, WeightedEdge):
+            assert d_weight == 1
+
+        if isinstance(any_edge, WeightedEdge):
+            assert d["weight"] == 1
+            
+    # unwrapper(**any_edge)
+        
     
 def test_mro():
     # Not really a test, but I want this to be known
