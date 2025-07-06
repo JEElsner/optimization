@@ -312,4 +312,4 @@ class DirectedWeightedGraph(DirectedGraph[V], WeightedGraph[V, W]):
 class Graph(GraphType[V], GraphRepresentation[V]):
     @classmethod
     def from_types[G](cls, type_: GraphType[V], repr: GraphRepresentation[V]) -> G: # type: ignore
-        pass
+        raise NotImplementedError()
