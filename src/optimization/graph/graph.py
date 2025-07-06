@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TypeVar, Generic, Collection, Tuple, Set, Iterable
+from typing import TypeVar, Generic, Collection, Tuple, Set, Iterable, Dict, Any
 
 import warnings
 
@@ -10,7 +10,6 @@ from abc import ABCMeta, abstractmethod
 
 V = TypeVar('V')
 W = TypeVar('W')
-G = TypeVar('G', bound=Graph)
 
 class Edge(Generic[V]):
     """Represents an (undirected) edge in a graph.
@@ -55,15 +54,36 @@ class Edge(Generic[V]):
     
     def __tuple__(self):
         return (self.v1, self.v2)
-            
+    
     def __eq__(self, value: object) -> bool:
-        if not isinstance(value, self.__class__):
+        if isinstance(value, tuple):
+            # Compare only vertices in tuples
+            return value[0] in self and value[1] in self
+        elif isinstance(value, dict):
+            # Assume dict is same as compared edge, so convert to like edge
+            value = self.__class__(**value)
+        elif not isinstance(value, Edge):
+            # return false for anything not a tuple, dict, or edge
             return False
         
+        # return false if labels differ
         if self._label != value._label:
             return False
         
-        return (self.v1 == value.v1 and self.v2 == value.v2) or (self.v1 == value.v2 and self.v2 == value.v1)
+        if isinstance(self, WeightedEdge) and isinstance(value, WeightedEdge):
+            # If both are weighted edges, make sure edges match
+            if self.weight != value.weight:
+                return False
+        elif isinstance(self, WeightedEdge) or isinstance(value, WeightedEdge):
+            # if only one is a weighted edge, they are not equal
+            return False
+        
+        if isinstance(self, DirectedEdge) or isinstance(value, DirectedEdge):
+            # if one is a directed edge, make sure they are both directed same
+            return self.v1 == value.v1 and self.v2 == value.v2
+        else:
+            # if neither directed, make sure vertices simply match
+            return self.v1 in value and self.v2 in value
     
     def __hash__(self) -> int:
         edge_hash = min(hash(self.v1), hash(self.v2))
@@ -88,12 +108,6 @@ class WeightedEdge(Generic[V, W], Edge[V]):
     def __repr__(self) -> str:
         return f"WeightedEdge(v1={self.v1}, v2={self.v2}, weight={self.weight}, label={self._label})"
 
-    def __eq__(self, value: object) -> bool:
-        if super().__eq__(value):
-            return self.weight == value.weight # type: ignore
-        else:
-            return False
-        
     def __hash__(self) -> int:
         return hash((super().__hash__(), self.weight))
     
@@ -109,12 +123,6 @@ class DirectedEdge(Edge[V]):
     def __repr__(self) -> str:
         return f"DirectedEdge(v1={self.v1!r}, v2={self.v2!r}, label={self._label!r})"
             
-    def __eq__(self, value: object) -> bool:
-        if super().__eq__(value):
-            return self.v1 == value.v1 and self.v2 == value.v2 # type: ignore
-        else:
-            return False
-        
     def __hash__(self) -> int:
         return hash((self.v1, self.v2, self._label))
     
@@ -287,20 +295,13 @@ class GraphType(AbstractGraph[V]):
 
 class WeightedGraph(Generic[V, W], GraphType[V]):
     @abstractmethod
-    def get_edge_weight(self, edge: Edge[V] | Tuple[V, V]) -> W:
+    def get_edge_weight(self, v1: V, v2: V) -> W:
         """Get the weight associated with the given edge."""
-        
-        if isinstance(edge, WeightedEdge):
-            warnings.warn("Warning: edge is weighted edge (possibly with different weight)")
-
         pass
 
     @abstractmethod
-    def set_edge_weight(self, edge: Edge[V] | Tuple[V, V], weight: W):
-
-        if isinstance(edge, WeightedEdge):
-            warnings.warn("Warning: edge is weighted edge (possibly with different weight)")
-
+    def set_edge_weight(self, v1: V, v2: V, weight: W):
+        """Set the weight associated with the given edge."""
         pass
 
 class DirectedGraph(GraphType[V]):
@@ -311,5 +312,6 @@ class DirectedWeightedGraph(DirectedGraph[V], WeightedGraph[V, W]):
 
 class Graph(GraphType[V], GraphRepresentation[V]):
     @classmethod
-    def from_types[G](cls, type_: GraphType[V], repr: GraphRepresentation[V]) -> G: # type: ignore
+    def from_types[G](cls, type_: GraphType[V], repr: GraphRepresentation[V]): # type: ignore
         raise NotImplementedError()
+    
