@@ -35,13 +35,14 @@ class IncidenceMatrix(GraphRepresentation[V]):
         return neighbors
 
     def add_vertex(self, v: V):
-        if v != self.matrix.shape[0]:
-            raise ValueError(f"Error: next vertex must be the next Veger not already a vertex ({self.vertex_count=})")
-
+        self._vertices.append(v) # add vertex to vertex list
+        
+        # extend matrix for new vertex
         self.matrix = np.pad(self.matrix, ((0, 1), (0, 0)), mode='constant', constant_values='0')
 
     def remove_vertex(self, v: V):
         idx = self.get_vertex_index(v)
+        self._vertices.remove(v)
         self.matrix =  np.concat((self.matrix[:idx], self.matrix[idx+1:]))
 
     def add_edge(self, v1: V, v2: V, weight = None):
